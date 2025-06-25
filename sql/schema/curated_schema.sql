@@ -1,5 +1,10 @@
+-- Create a new schema named 'curated_rental_marketplace'.
+-- This schema will store data that has been cleaned, transformed, and enriched from the raw layer.
 CREATE SCHEMA IF NOT EXISTS curated_rental_marketplace;
 
+
+-- Create the 'apartments' table within the 'curated_rental_marketplace' schema.
+-- This table likely combines and refines general apartment listing information from the raw layer.
 CREATE TABLE IF NOT EXISTS curated_rental_marketplace.apartments (
     id BIGINT NOT NULL,
     title VARCHAR(256),
@@ -14,6 +19,9 @@ CREATE TABLE IF NOT EXISTS curated_rental_marketplace.apartments (
     PRIMARY KEY (id)
 );
 
+
+-- Create the 'apartment_attributes' table within the 'curated_rental_marketplace' schema.
+-- This table holds detailed, cleaned attributes for apartments, separate from general listing info.
 CREATE TABLE IF NOT EXISTS curated_rental_marketplace.apartment_attributes (
     id BIGINT NOT NULL,
     category VARCHAR(256),
@@ -35,6 +43,9 @@ CREATE TABLE IF NOT EXISTS curated_rental_marketplace.apartment_attributes (
     PRIMARY KEY (id)
 );
 
+
+-- Create the 'user_viewing' table within the 'curated_rental_marketplace' schema.
+-- This table tracks user interaction events with apartments, with cleansed data types.
 CREATE TABLE IF NOT EXISTS curated_rental_marketplace.user_viewing (
     user_id BIGINT NOT NULL,
     apartment_id BIGINT NOT NULL,
@@ -46,6 +57,9 @@ CREATE TABLE IF NOT EXISTS curated_rental_marketplace.user_viewing (
     PRIMARY KEY (user_id, apartment_id, viewed_at)
 );
 
+
+-- Create the 'bookings' table within the 'curated_rental_marketplace' schema.
+-- This table contains cleaned and enriched booking details, including derived metrics.
 CREATE TABLE IF NOT EXISTS curated_rental_marketplace.bookings (
     booking_id BIGINT NOT NULL,
     user_id BIGINT,
