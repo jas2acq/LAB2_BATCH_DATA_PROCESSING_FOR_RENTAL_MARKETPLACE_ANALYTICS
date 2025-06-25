@@ -1,0 +1,1301 @@
+{
+	"jobConfig": {
+		"name": "raw-to-curated",
+		"description": "",
+		"role": "arn:aws:iam::476114131873:role/p2-full-glue-role",
+		"command": "glueetl",
+		"version": "5.0",
+		"runtime": null,
+		"workerType": "G.1X",
+		"numberOfWorkers": 10,
+		"maxCapacity": 10,
+		"jobRunQueuingEnabled": false,
+		"maxRetries": 0,
+		"timeout": 480,
+		"maxConcurrentRuns": 1,
+		"security": "none",
+		"scriptName": "raw-to-curated.py",
+		"scriptLocation": "s3://aws-glue-assets-476114131873-eu-north-1/scripts/",
+		"language": "python-3",
+		"spark": true,
+		"sparkConfiguration": "standard",
+		"jobParameters": [],
+		"tags": [],
+		"jobMode": "VISUAL_MODE",
+		"createdOn": "2025-06-20T07:15:54.946Z",
+		"developerMode": false,
+		"connectionsList": [
+			"Redshift connection"
+		],
+		"temporaryDirectory": "s3://aws-glue-assets-476114131873-eu-north-1/temporary/",
+		"logging": true,
+		"glueHiveMetastore": true,
+		"etlAutoTuning": true,
+		"metrics": true,
+		"observabilityMetrics": true,
+		"bookmark": "job-bookmark-disable",
+		"sparkPath": "s3://aws-glue-assets-476114131873-eu-north-1/sparkHistoryLogs/",
+		"maintenanceWindow": null,
+		"pythonPath": "",
+		"dependentPath": "",
+		"additionalPythonModules": ""
+	},
+	"dag": {
+		"node-1750403528597": {
+			"nodeId": "node-1750403528597",
+			"dataPreview": false,
+			"previewAmount": 0,
+			"inputs": [
+				"node-1750403493412"
+			],
+			"name": "Custom Transform-bookings",
+			"generatedNodeName": "CustomTransformbookings_node1750403528597",
+			"classification": "Transform",
+			"type": "CustomCode",
+			"code": "from pyspark.sql.functions import lower, trim, to_date, col, datediff, when, concat_ws, year, lpad, weekofyear, month\nfrom pyspark.sql.types import LongType, DoubleType, IntegerType\n\ndf_bookings = dfc.select(list(dfc.keys())[0]).toDF()\n\n# Cast columns to correct types\ndf_bookings = df_bookings.withColumn('booking_id', col('booking_id').cast(LongType()))\ndf_bookings = df_bookings.withColumn('user_id', col('user_id').cast(LongType()))\ndf_bookings = df_bookings.withColumn('apartment_id', col('apartment_id').cast(LongType()))\ndf_bookings = df_bookings.withColumn('booking_date', to_date(col('booking_date'), 'dd/MM/yyyy'))\ndf_bookings = df_bookings.withColumn('checkin_date', to_date(col('checkin_date'), 'dd/MM/yyyy'))\ndf_bookings = df_bookings.withColumn('checkout_date', to_date(col('checkout_date'), 'dd/MM/yyyy'))\ndf_bookings = df_bookings.withColumn('total_price', col('total_price').cast(DoubleType()))\n\n# Clean string columns\nfor str_col in ['currency', 'booking_status']:\n    df_bookings = df_bookings.withColumn(str_col, lower(trim(col(str_col))))\n\n# Calculate booking_duration_days\ndf_bookings = df_bookings.withColumn('booking_duration_days', datediff(col('checkout_date'), col('checkin_date')))\n\n# Calculate confirmed_revenue\ndf_bookings = df_bookings.withColumn('confirmed_revenue', when(col('booking_status') == 'confirmed', col('total_price')).otherwise(None).cast(DoubleType()))\n\n# Add week_year and month_year\ndf_bookings = df_bookings.withColumn('week_year', concat_ws('-', year('booking_date'), lpad(weekofyear('booking_date'), 2, '0')))\ndf_bookings = df_bookings.withColumn('month_year', concat_ws('-', year('booking_date'), lpad(month('booking_date'), 2, '0')))\n\n# Deduplicate on booking_id\ndf_bookings = df_bookings.dropDuplicates(['booking_id'])\n\ndyf_bookings_transformed = DynamicFrame.fromDF(df_bookings, glueContext, \"dyf_bookings_transformed\")\n\nreturn DynamicFrameCollection({\"bookings_transformed\": dyf_bookings_transformed}, glueContext)\n",
+			"className": "MyTransform_bookings",
+			"outputSchemas": [
+				[
+					{
+						"key": "booking_id",
+						"fullPath": [
+							"booking_id"
+						],
+						"type": "bigint",
+						"glueStudioType": null,
+						"children": null
+					},
+					{
+						"key": "user_id",
+						"fullPath": [
+							"user_id"
+						],
+						"type": "bigint",
+						"glueStudioType": null,
+						"children": null
+					},
+					{
+						"key": "apartment_id",
+						"fullPath": [
+							"apartment_id"
+						],
+						"type": "bigint",
+						"glueStudioType": null,
+						"children": null
+					},
+					{
+						"key": "booking_date",
+						"fullPath": [
+							"booking_date"
+						],
+						"type": "date",
+						"glueStudioType": null,
+						"children": null
+					},
+					{
+						"key": "checkin_date",
+						"fullPath": [
+							"checkin_date"
+						],
+						"type": "date",
+						"glueStudioType": null,
+						"children": null
+					},
+					{
+						"key": "checkout_date",
+						"fullPath": [
+							"checkout_date"
+						],
+						"type": "date",
+						"glueStudioType": null,
+						"children": null
+					},
+					{
+						"key": "total_price",
+						"fullPath": [
+							"total_price"
+						],
+						"type": "double",
+						"glueStudioType": null,
+						"children": null
+					},
+					{
+						"key": "currency",
+						"fullPath": [
+							"currency"
+						],
+						"type": "string",
+						"glueStudioType": null,
+						"children": null
+					},
+					{
+						"key": "booking_status",
+						"fullPath": [
+							"booking_status"
+						],
+						"type": "string",
+						"glueStudioType": null,
+						"children": null
+					},
+					{
+						"key": "booking_duration_days",
+						"fullPath": [
+							"booking_duration_days"
+						],
+						"type": "int",
+						"glueStudioType": null,
+						"children": null
+					},
+					{
+						"key": "confirmed_revenue",
+						"fullPath": [
+							"confirmed_revenue"
+						],
+						"type": "double",
+						"glueStudioType": null,
+						"children": null
+					},
+					{
+						"key": "week_year",
+						"fullPath": [
+							"week_year"
+						],
+						"type": "string",
+						"glueStudioType": null,
+						"children": null
+					},
+					{
+						"key": "month_year",
+						"fullPath": [
+							"month_year"
+						],
+						"type": "string",
+						"glueStudioType": null,
+						"children": null
+					}
+				]
+			],
+			"parentsValid": true,
+			"calculatedType": "",
+			"codeGenVersion": 2
+		},
+		"node-1750403772767": {
+			"nodeId": "node-1750403772767",
+			"dataPreview": false,
+			"previewAmount": 0,
+			"inputs": [],
+			"name": "Amazon Redshift-user_viewing",
+			"generatedNodeName": "AmazonRedshiftuser_viewing_node1750403772767",
+			"classification": "DataSource",
+			"type": "AmazonRedshift",
+			"isCatalog": false,
+			"data": {
+				"accessType": "connection",
+				"sourceType": "table",
+				"connection": {
+					"value": "Redshift connection",
+					"label": "Redshift connection",
+					"description": "No description available. Version: 2"
+				},
+				"schema": {
+					"value": "raw_rental_marketplace",
+					"label": "raw_rental_marketplace",
+					"description": null
+				},
+				"catalogDatabase": null,
+				"catalogRedshiftTable": null,
+				"catalogRedshiftSchema": null,
+				"table": {
+					"value": "user_viewing",
+					"label": "user_viewing",
+					"description": null
+				},
+				"catalogTable": null,
+				"tempDir": "s3://aws-glue-assets-476114131873-eu-north-1/temporary/",
+				"iamRole": null,
+				"sampleQuery": null,
+				"preAction": null,
+				"postAction": null,
+				"action": "append",
+				"tableSchema": [],
+				"selectedColumns": [],
+				"crawlerConnection": null,
+				"tablePrefix": null,
+				"upsert": false,
+				"mergeAction": "simple",
+				"mergeWhenMatched": "update",
+				"mergeWhenNotMatched": "insert",
+				"mergeClause": null,
+				"stagingTable": "raw_rental_marketplace.user_viewing_temp_m90zk6",
+				"advancedOptions": []
+			},
+			"calculatedType": "",
+			"codeGenVersion": 2,
+			"outputSchemas": [
+				[]
+			]
+		},
+		"node-1750405417465": {
+			"nodeId": "node-1750405417465",
+			"dataPreview": false,
+			"previewAmount": 0,
+			"inputs": [
+				"node-1750403528597"
+			],
+			"name": "Select From Collection-bookings",
+			"generatedNodeName": "SelectFromCollectionbookings_node1750405417465",
+			"classification": "Transform",
+			"type": "SelectFromCollection",
+			"index": 0,
+			"parentsValid": true,
+			"calculatedType": "",
+			"codeGenVersion": 2
+		},
+		"node-1750402368013": {
+			"nodeId": "node-1750402368013",
+			"dataPreview": false,
+			"previewAmount": 0,
+			"inputs": [
+				"node-1750402272101"
+			],
+			"name": "Custom Transform-apartments",
+			"generatedNodeName": "CustomTransformapartments_node1750402368013",
+			"classification": "Transform",
+			"type": "CustomCode",
+			"code": "from pyspark.sql.functions import lower, trim, to_date, col, concat_ws, year, lpad, weekofyear, month\nfrom pyspark.sql.types import LongType, DoubleType, BooleanType\n\ndf_apartments = dfc.select(list(dfc.keys())[0]).toDF()\n\n# Cast columns to correct types\ndf_apartments = df_apartments.withColumn('id', col('id').cast(LongType()))\ndf_apartments = df_apartments.withColumn('price', col('price').cast(DoubleType()))\ndf_apartments = df_apartments.withColumn('listing_created_on', to_date(col('listing_created_on'), 'dd/MM/yyyy'))\ndf_apartments = df_apartments.withColumn('last_modified_timestamp', to_date(col('last_modified_timestamp'), 'dd/MM/yyyy'))\ndf_apartments = df_apartments.withColumn('is_active', col('is_active').cast(BooleanType()))\n\n# Clean string columns\nfor str_col in ['title', 'source', 'currency']:\n    df_apartments = df_apartments.withColumn(str_col, lower(trim(col(str_col))))\n\n# Add week_year and month_year\ndf_apartments = df_apartments.withColumn('week_year', concat_ws('-', year('listing_created_on'), lpad(weekofyear('listing_created_on'), 2, '0')))\ndf_apartments = df_apartments.withColumn('month_year', concat_ws('-', year('listing_created_on'), lpad(month('listing_created_on'), 2, '0')))\n\n# Deduplicate on id\ndf_apartments = df_apartments.dropDuplicates(['id'])\n\ndyf_apartments_transformed = DynamicFrame.fromDF(df_apartments, glueContext, \"dyf_apartments_transformed\")\n\nreturn DynamicFrameCollection({\"apartments_transformed\": dyf_apartments_transformed}, glueContext)",
+			"className": "MyTransform_apartments",
+			"outputSchemas": [
+				[
+					{
+						"key": "id",
+						"fullPath": [
+							"id"
+						],
+						"type": "bigint",
+						"glueStudioType": null,
+						"children": null
+					},
+					{
+						"key": "title",
+						"fullPath": [
+							"title"
+						],
+						"type": "string",
+						"glueStudioType": null,
+						"children": null
+					},
+					{
+						"key": "source",
+						"fullPath": [
+							"source"
+						],
+						"type": "string",
+						"glueStudioType": null,
+						"children": null
+					},
+					{
+						"key": "price",
+						"fullPath": [
+							"price"
+						],
+						"type": "double",
+						"glueStudioType": null,
+						"children": null
+					},
+					{
+						"key": "currency",
+						"fullPath": [
+							"currency"
+						],
+						"type": "string",
+						"glueStudioType": null,
+						"children": null
+					},
+					{
+						"key": "listing_created_on",
+						"fullPath": [
+							"listing_created_on"
+						],
+						"type": "date",
+						"glueStudioType": null,
+						"children": null
+					},
+					{
+						"key": "is_active",
+						"fullPath": [
+							"is_active"
+						],
+						"type": "boolean",
+						"glueStudioType": null,
+						"children": null
+					},
+					{
+						"key": "last_modified_timestamp",
+						"fullPath": [
+							"last_modified_timestamp"
+						],
+						"type": "date",
+						"glueStudioType": null,
+						"children": null
+					},
+					{
+						"key": "week_year",
+						"fullPath": [
+							"week_year"
+						],
+						"type": "string",
+						"glueStudioType": null,
+						"children": null
+					},
+					{
+						"key": "month_year",
+						"fullPath": [
+							"month_year"
+						],
+						"type": "string",
+						"glueStudioType": null,
+						"children": null
+					}
+				]
+			],
+			"parentsValid": true,
+			"calculatedType": "",
+			"codeGenVersion": 2
+		},
+		"node-1750402272101": {
+			"nodeId": "node-1750402272101",
+			"dataPreview": false,
+			"previewAmount": 0,
+			"inputs": [],
+			"name": "Amazon Redshift-apartments",
+			"generatedNodeName": "AmazonRedshiftapartments_node1750402272101",
+			"classification": "DataSource",
+			"type": "AmazonRedshift",
+			"isCatalog": false,
+			"data": {
+				"accessType": "connection",
+				"sourceType": "table",
+				"connection": {
+					"value": "Redshift connection",
+					"label": "Redshift connection",
+					"description": "No description available. Version: 2"
+				},
+				"schema": {
+					"value": "raw_rental_marketplace",
+					"label": "raw_rental_marketplace",
+					"description": null
+				},
+				"catalogDatabase": null,
+				"catalogRedshiftTable": null,
+				"catalogRedshiftSchema": null,
+				"table": {
+					"value": "apartments",
+					"label": "apartments",
+					"description": null
+				},
+				"catalogTable": null,
+				"tempDir": "s3://aws-glue-assets-476114131873-eu-north-1/temporary/",
+				"iamRole": null,
+				"sampleQuery": null,
+				"preAction": null,
+				"postAction": null,
+				"action": "append",
+				"tableSchema": [],
+				"selectedColumns": [],
+				"crawlerConnection": null,
+				"tablePrefix": null,
+				"upsert": false,
+				"mergeAction": "simple",
+				"mergeWhenMatched": "update",
+				"mergeWhenNotMatched": "insert",
+				"mergeClause": null,
+				"stagingTable": "raw_rental_marketplace.apartments_temp_7epjmj",
+				"advancedOptions": []
+			},
+			"calculatedType": "",
+			"codeGenVersion": 2,
+			"outputSchemas": [
+				[]
+			]
+		},
+		"node-1750405305387": {
+			"nodeId": "node-1750405305387",
+			"dataPreview": false,
+			"previewAmount": 0,
+			"inputs": [
+				"node-1750403994211"
+			],
+			"name": "Select From Collection-apartments_attributes",
+			"generatedNodeName": "SelectFromCollectionapartments_attributes_node1750405305387",
+			"classification": "Transform",
+			"type": "SelectFromCollection",
+			"index": 0,
+			"parentsValid": true,
+			"calculatedType": "",
+			"codeGenVersion": 2
+		},
+		"node-1750403833094": {
+			"nodeId": "node-1750403833094",
+			"dataPreview": false,
+			"previewAmount": 0,
+			"inputs": [
+				"node-1750403772767"
+			],
+			"name": "Custom Transform-user_viewing",
+			"generatedNodeName": "CustomTransformuser_viewing_node1750403833094",
+			"classification": "Transform",
+			"type": "CustomCode",
+			"code": "from pyspark.sql.functions import lower, trim, to_date, col, concat_ws, year, lpad, weekofyear, month\nfrom pyspark.sql.types import BooleanType, LongType\n\ndf_user_viewing = dfc.select(list(dfc.keys())[0]).toDF()\n\n# Cast IDs to BIGINT\ndf_user_viewing = df_user_viewing.withColumn('user_id', col('user_id').cast(LongType()))\ndf_user_viewing = df_user_viewing.withColumn('apartment_id', col('apartment_id').cast(LongType()))\n\n# Convert viewed_at to DATE\ndf_user_viewing = df_user_viewing.withColumn('viewed_at', to_date(col('viewed_at'), 'dd/MM/yyyy'))\n\n# Cast is_wishlisted to boolean\ndf_user_viewing = df_user_viewing.withColumn('is_wishlisted', col('is_wishlisted').cast(BooleanType()))\n\n# Clean call_to_action\ndf_user_viewing = df_user_viewing.withColumn('call_to_action', lower(trim(col('call_to_action'))))\n\n# Add week_year (e.g., '2025-25') and month_year (e.g., '2025-06')\ndf_user_viewing = df_user_viewing.withColumn('week_year', concat_ws('-', year('viewed_at'), lpad(weekofyear('viewed_at'), 2, '0')))\ndf_user_viewing = df_user_viewing.withColumn('month_year', concat_ws('-', year('viewed_at'), lpad(month('viewed_at'), 2, '0')))\n\n# Deduplicate on primary key\ndf_user_viewing = df_user_viewing.dropDuplicates(['user_id', 'apartment_id', 'viewed_at'])\n\ndyf_user_viewing_transformed = DynamicFrame.fromDF(df_user_viewing, glueContext, \"dyf_user_viewing_transformed\")\n\nreturn DynamicFrameCollection({\"user_viewing_transformed\": dyf_user_viewing_transformed}, glueContext)\n",
+			"className": "MyTransform_user_viewing",
+			"outputSchemas": [
+				[
+					{
+						"key": "user_id",
+						"fullPath": [
+							"user_id"
+						],
+						"type": "bigint",
+						"glueStudioType": null,
+						"children": null
+					},
+					{
+						"key": "apartment_id",
+						"fullPath": [
+							"apartment_id"
+						],
+						"type": "bigint",
+						"glueStudioType": null,
+						"children": null
+					},
+					{
+						"key": "viewed_at",
+						"fullPath": [
+							"viewed_at"
+						],
+						"type": "date",
+						"glueStudioType": null,
+						"children": null
+					},
+					{
+						"key": "is_wishlisted",
+						"fullPath": [
+							"is_wishlisted"
+						],
+						"type": "boolean",
+						"glueStudioType": null,
+						"children": null
+					},
+					{
+						"key": "call_to_action",
+						"fullPath": [
+							"call_to_action"
+						],
+						"type": "string",
+						"glueStudioType": null,
+						"children": null
+					},
+					{
+						"key": "week_year",
+						"fullPath": [
+							"week_year"
+						],
+						"type": "string",
+						"glueStudioType": null,
+						"children": null
+					},
+					{
+						"key": "month_year",
+						"fullPath": [
+							"month_year"
+						],
+						"type": "string",
+						"glueStudioType": null,
+						"children": null
+					}
+				]
+			],
+			"parentsValid": true,
+			"calculatedType": "",
+			"codeGenVersion": 2
+		},
+		"node-1750405508147": {
+			"nodeId": "node-1750405508147",
+			"dataPreview": false,
+			"previewAmount": 0,
+			"inputs": [
+				"node-1750403833094"
+			],
+			"name": "Select From Collection-user_viewing",
+			"generatedNodeName": "SelectFromCollectionuser_viewing_node1750405508147",
+			"classification": "Transform",
+			"type": "SelectFromCollection",
+			"index": 0,
+			"parentsValid": true,
+			"calculatedType": "",
+			"codeGenVersion": 2
+		},
+		"node-1750405536921": {
+			"nodeId": "node-1750405536921",
+			"dataPreview": false,
+			"previewAmount": 0,
+			"inputs": [
+				"node-1750405508147"
+			],
+			"name": "Amazon Redshift-user_viewing",
+			"generatedNodeName": "AmazonRedshiftuser_viewing_node1750405536921",
+			"classification": "DataSink",
+			"type": "AmazonRedshift",
+			"streamingBatchInterval": 100,
+			"data": {
+				"accessType": "connection",
+				"sourceType": "table",
+				"connection": {
+					"value": "Redshift connection",
+					"label": "Redshift connection",
+					"description": "No description available. Version: 2"
+				},
+				"schema": {
+					"value": "curated_rental_marketplace",
+					"label": "curated_rental_marketplace",
+					"description": null
+				},
+				"catalogDatabase": null,
+				"catalogRedshiftTable": null,
+				"catalogRedshiftSchema": null,
+				"table": {
+					"value": "user_viewing",
+					"label": "user_viewing",
+					"description": null
+				},
+				"catalogTable": null,
+				"tempDir": "s3://aws-glue-assets-476114131873-eu-north-1/temporary/",
+				"iamRole": null,
+				"sampleQuery": null,
+				"preAction": null,
+				"postAction": null,
+				"action": "append",
+				"tableSchema": [
+					{
+						"value": "user_id",
+						"label": "user_id",
+						"description": "VARCHAR"
+					},
+					{
+						"value": "apartment_id",
+						"label": "apartment_id",
+						"description": "VARCHAR"
+					},
+					{
+						"value": "viewed_at",
+						"label": "viewed_at",
+						"description": "DATE"
+					},
+					{
+						"value": "is_wishlisted",
+						"label": "is_wishlisted",
+						"description": "BOOLEAN"
+					},
+					{
+						"value": "call_to_action",
+						"label": "call_to_action",
+						"description": "VARCHAR"
+					},
+					{
+						"value": "week_year",
+						"label": "week_year",
+						"description": "VARCHAR"
+					},
+					{
+						"value": "month_year",
+						"label": "month_year",
+						"description": "VARCHAR"
+					}
+				],
+				"selectedColumns": [],
+				"crawlerConnection": null,
+				"tablePrefix": null,
+				"upsert": false,
+				"mergeAction": "simple",
+				"mergeWhenMatched": "update",
+				"mergeWhenNotMatched": "insert",
+				"mergeClause": null,
+				"stagingTable": "curated_rental_marketplace.user_viewing_temp_nqu4nj",
+				"advancedOptions": []
+			},
+			"calculatedType": "",
+			"codeGenVersion": 2
+		},
+		"node-1750403994211": {
+			"nodeId": "node-1750403994211",
+			"dataPreview": false,
+			"previewAmount": 0,
+			"inputs": [
+				"node-1750403927257"
+			],
+			"name": "Custom Transform-apartments_attributes",
+			"generatedNodeName": "CustomTransformapartments_attributes_node1750403994211",
+			"classification": "Transform",
+			"type": "CustomCode",
+			"code": "from pyspark.sql.functions import lower, trim, col\nfrom pyspark.sql.types import LongType, FloatType, IntegerType, BooleanType\n\ndf_apartment_attributes = dfc.select(list(dfc.keys())[0]).toDF()\n\n# Cast columns to correct types\ndf_apartment_attributes = df_apartment_attributes.withColumn('id', col('id').cast(LongType()))\ndf_apartment_attributes = df_apartment_attributes.withColumn('bathrooms', col('bathrooms').cast(FloatType()))\ndf_apartment_attributes = df_apartment_attributes.withColumn('bedrooms', col('bedrooms').cast(IntegerType()))\ndf_apartment_attributes = df_apartment_attributes.withColumn('fee', col('fee').cast(FloatType()))\ndf_apartment_attributes = df_apartment_attributes.withColumn('has_photo', col('has_photo').cast(BooleanType()))\ndf_apartment_attributes = df_apartment_attributes.withColumn('pets_allowed', col('pets_allowed').cast(BooleanType()))\ndf_apartment_attributes = df_apartment_attributes.withColumn('square_feet', col('square_feet').cast(IntegerType()))\ndf_apartment_attributes = df_apartment_attributes.withColumn('latitude', col('latitude').cast(FloatType()))\ndf_apartment_attributes = df_apartment_attributes.withColumn('longitude', col('longitude').cast(FloatType()))\n\n# Clean string columns\nfor str_col in ['category', 'body', 'amenities', 'price_display', 'price_type', 'address', 'cityname', 'state']:\n    df_apartment_attributes = df_apartment_attributes.withColumn(str_col, lower(trim(col(str_col))))\n\n# Deduplicate on id\ndf_apartment_attributes = df_apartment_attributes.dropDuplicates(['id'])\n\ndyf_apartment_attributes_transformed = DynamicFrame.fromDF(df_apartment_attributes, glueContext, \"dyf_apartment_attributes_transformed\")\n\nreturn DynamicFrameCollection({\"apartment_attributes_transformed\": dyf_apartment_attributes_transformed}, glueContext)",
+			"className": "MyTransform_apartment_attributes",
+			"outputSchemas": [
+				[
+					{
+						"key": "id",
+						"fullPath": [
+							"id"
+						],
+						"type": "bigint",
+						"glueStudioType": null,
+						"children": null
+					},
+					{
+						"key": "category",
+						"fullPath": [
+							"category"
+						],
+						"type": "string",
+						"glueStudioType": null,
+						"children": null
+					},
+					{
+						"key": "body",
+						"fullPath": [
+							"body"
+						],
+						"type": "string",
+						"glueStudioType": null,
+						"children": null
+					},
+					{
+						"key": "amenities",
+						"fullPath": [
+							"amenities"
+						],
+						"type": "string",
+						"glueStudioType": null,
+						"children": null
+					},
+					{
+						"key": "bathrooms",
+						"fullPath": [
+							"bathrooms"
+						],
+						"type": "float",
+						"glueStudioType": null,
+						"children": null
+					},
+					{
+						"key": "bedrooms",
+						"fullPath": [
+							"bedrooms"
+						],
+						"type": "int",
+						"glueStudioType": null,
+						"children": null
+					},
+					{
+						"key": "fee",
+						"fullPath": [
+							"fee"
+						],
+						"type": "float",
+						"glueStudioType": null,
+						"children": null
+					},
+					{
+						"key": "has_photo",
+						"fullPath": [
+							"has_photo"
+						],
+						"type": "boolean",
+						"glueStudioType": null,
+						"children": null
+					},
+					{
+						"key": "pets_allowed",
+						"fullPath": [
+							"pets_allowed"
+						],
+						"type": "boolean",
+						"glueStudioType": null,
+						"children": null
+					},
+					{
+						"key": "price_display",
+						"fullPath": [
+							"price_display"
+						],
+						"type": "string",
+						"glueStudioType": null,
+						"children": null
+					},
+					{
+						"key": "price_type",
+						"fullPath": [
+							"price_type"
+						],
+						"type": "string",
+						"glueStudioType": null,
+						"children": null
+					},
+					{
+						"key": "square_feet",
+						"fullPath": [
+							"square_feet"
+						],
+						"type": "int",
+						"glueStudioType": null,
+						"children": null
+					},
+					{
+						"key": "address",
+						"fullPath": [
+							"address"
+						],
+						"type": "string",
+						"glueStudioType": null,
+						"children": null
+					},
+					{
+						"key": "cityname",
+						"fullPath": [
+							"cityname"
+						],
+						"type": "string",
+						"glueStudioType": null,
+						"children": null
+					},
+					{
+						"key": "state",
+						"fullPath": [
+							"state"
+						],
+						"type": "string",
+						"glueStudioType": null,
+						"children": null
+					},
+					{
+						"key": "latitude",
+						"fullPath": [
+							"latitude"
+						],
+						"type": "float",
+						"glueStudioType": null,
+						"children": null
+					},
+					{
+						"key": "longitude",
+						"fullPath": [
+							"longitude"
+						],
+						"type": "float",
+						"glueStudioType": null,
+						"children": null
+					}
+				]
+			],
+			"parentsValid": true,
+			"calculatedType": "",
+			"codeGenVersion": 2
+		},
+		"node-1750403927257": {
+			"nodeId": "node-1750403927257",
+			"dataPreview": false,
+			"previewAmount": 0,
+			"inputs": [],
+			"name": "Amazon Redshift-apartments_attributes",
+			"generatedNodeName": "AmazonRedshiftapartments_attributes_node1750403927257",
+			"classification": "DataSource",
+			"type": "AmazonRedshift",
+			"isCatalog": false,
+			"data": {
+				"accessType": "connection",
+				"sourceType": "table",
+				"connection": {
+					"value": "Redshift connection",
+					"label": "Redshift connection",
+					"description": "No description available. Version: 2"
+				},
+				"schema": {
+					"value": "raw_rental_marketplace",
+					"label": "raw_rental_marketplace",
+					"description": null
+				},
+				"catalogDatabase": null,
+				"catalogRedshiftTable": null,
+				"catalogRedshiftSchema": null,
+				"table": {
+					"value": "apartment_attributes",
+					"label": "apartment_attributes",
+					"description": null
+				},
+				"catalogTable": null,
+				"tempDir": "s3://aws-glue-assets-476114131873-eu-north-1/temporary/",
+				"iamRole": null,
+				"sampleQuery": null,
+				"preAction": null,
+				"postAction": null,
+				"action": "append",
+				"tableSchema": [],
+				"selectedColumns": [],
+				"crawlerConnection": null,
+				"tablePrefix": null,
+				"upsert": false,
+				"mergeAction": "simple",
+				"mergeWhenMatched": "update",
+				"mergeWhenNotMatched": "insert",
+				"mergeClause": null,
+				"stagingTable": "raw_rental_marketplace.apartment_attributes_temp_7ix7kq",
+				"advancedOptions": []
+			},
+			"calculatedType": "",
+			"codeGenVersion": 2,
+			"outputSchemas": [
+				[]
+			]
+		},
+		"node-1750405353409": {
+			"nodeId": "node-1750405353409",
+			"dataPreview": false,
+			"previewAmount": 0,
+			"inputs": [
+				"node-1750405305387"
+			],
+			"name": "Amazon Redshift-apartments",
+			"generatedNodeName": "AmazonRedshiftapartments_node1750405353409",
+			"classification": "DataSink",
+			"type": "AmazonRedshift",
+			"streamingBatchInterval": 100,
+			"data": {
+				"accessType": "connection",
+				"sourceType": "table",
+				"connection": {
+					"value": "Redshift connection",
+					"label": "Redshift connection",
+					"description": "No description available. Version: 2"
+				},
+				"schema": {
+					"value": "curated_rental_marketplace",
+					"label": "curated_rental_marketplace",
+					"description": null
+				},
+				"catalogDatabase": null,
+				"catalogRedshiftTable": null,
+				"catalogRedshiftSchema": null,
+				"table": {
+					"value": "apartment_attributes",
+					"label": "apartment_attributes",
+					"description": null
+				},
+				"catalogTable": null,
+				"tempDir": "s3://aws-glue-assets-476114131873-eu-north-1/temporary/",
+				"iamRole": null,
+				"sampleQuery": null,
+				"preAction": null,
+				"postAction": null,
+				"action": "append",
+				"tableSchema": [
+					{
+						"value": "id",
+						"label": "id",
+						"description": "VARCHAR"
+					},
+					{
+						"value": "category",
+						"label": "category",
+						"description": "VARCHAR"
+					},
+					{
+						"value": "body",
+						"label": "body",
+						"description": "VARCHAR"
+					},
+					{
+						"value": "amenities",
+						"label": "amenities",
+						"description": "VARCHAR"
+					},
+					{
+						"value": "bathrooms",
+						"label": "bathrooms",
+						"description": "REAL"
+					},
+					{
+						"value": "bedrooms",
+						"label": "bedrooms",
+						"description": "INTEGER"
+					},
+					{
+						"value": "fee",
+						"label": "fee",
+						"description": "REAL"
+					},
+					{
+						"value": "has_photo",
+						"label": "has_photo",
+						"description": "BOOLEAN"
+					},
+					{
+						"value": "pets_allowed",
+						"label": "pets_allowed",
+						"description": "BOOLEAN"
+					},
+					{
+						"value": "price_display",
+						"label": "price_display",
+						"description": "VARCHAR"
+					},
+					{
+						"value": "price_type",
+						"label": "price_type",
+						"description": "VARCHAR"
+					},
+					{
+						"value": "square_feet",
+						"label": "square_feet",
+						"description": "INTEGER"
+					},
+					{
+						"value": "address",
+						"label": "address",
+						"description": "VARCHAR"
+					},
+					{
+						"value": "cityname",
+						"label": "cityname",
+						"description": "VARCHAR"
+					},
+					{
+						"value": "state",
+						"label": "state",
+						"description": "VARCHAR"
+					},
+					{
+						"value": "latitude",
+						"label": "latitude",
+						"description": "REAL"
+					},
+					{
+						"value": "longitude",
+						"label": "longitude",
+						"description": "REAL"
+					}
+				],
+				"selectedColumns": [],
+				"crawlerConnection": null,
+				"tablePrefix": null,
+				"upsert": false,
+				"mergeAction": "simple",
+				"mergeWhenMatched": "update",
+				"mergeWhenNotMatched": "insert",
+				"mergeClause": null,
+				"stagingTable": "curated_rental_marketplace.apartment_attributes_temp_xog77v",
+				"advancedOptions": []
+			},
+			"calculatedType": "",
+			"codeGenVersion": 2
+		},
+		"node-1750403493412": {
+			"nodeId": "node-1750403493412",
+			"dataPreview": false,
+			"previewAmount": 0,
+			"inputs": [],
+			"name": "Amazon Redshift-bookings",
+			"generatedNodeName": "AmazonRedshiftbookings_node1750403493412",
+			"classification": "DataSource",
+			"type": "AmazonRedshift",
+			"isCatalog": false,
+			"data": {
+				"accessType": "connection",
+				"sourceType": "table",
+				"connection": {
+					"value": "Redshift connection",
+					"label": "Redshift connection",
+					"description": "No description available. Version: 2"
+				},
+				"schema": {
+					"value": "raw_rental_marketplace",
+					"label": "raw_rental_marketplace",
+					"description": null
+				},
+				"catalogDatabase": null,
+				"catalogRedshiftTable": null,
+				"catalogRedshiftSchema": null,
+				"table": {
+					"value": "bookings",
+					"label": "bookings",
+					"description": null
+				},
+				"catalogTable": null,
+				"tempDir": "s3://aws-glue-assets-476114131873-eu-north-1/temporary/",
+				"iamRole": null,
+				"sampleQuery": null,
+				"preAction": null,
+				"postAction": null,
+				"action": "append",
+				"tableSchema": [],
+				"selectedColumns": [],
+				"crawlerConnection": null,
+				"tablePrefix": null,
+				"upsert": false,
+				"mergeAction": "simple",
+				"mergeWhenMatched": "update",
+				"mergeWhenNotMatched": "insert",
+				"mergeClause": null,
+				"stagingTable": "raw_rental_marketplace.bookings_temp_qzm9zh",
+				"advancedOptions": []
+			},
+			"calculatedType": "",
+			"codeGenVersion": 2,
+			"outputSchemas": [
+				[]
+			]
+		},
+		"node-1750405599028": {
+			"nodeId": "node-1750405599028",
+			"dataPreview": false,
+			"previewAmount": 0,
+			"inputs": [
+				"node-1750405585909"
+			],
+			"name": "Amazon Redshift-apartments",
+			"generatedNodeName": "AmazonRedshiftapartments_node1750405599028",
+			"classification": "DataSink",
+			"type": "AmazonRedshift",
+			"streamingBatchInterval": 100,
+			"data": {
+				"accessType": "connection",
+				"sourceType": "table",
+				"connection": {
+					"value": "Redshift connection",
+					"label": "Redshift connection",
+					"description": "No description available. Version: 2"
+				},
+				"schema": {
+					"value": "curated_rental_marketplace",
+					"label": "curated_rental_marketplace",
+					"description": null
+				},
+				"catalogDatabase": null,
+				"catalogRedshiftTable": null,
+				"catalogRedshiftSchema": null,
+				"table": {
+					"value": "apartments",
+					"label": "apartments",
+					"description": null
+				},
+				"catalogTable": null,
+				"tempDir": "s3://aws-glue-assets-476114131873-eu-north-1/temporary/",
+				"iamRole": null,
+				"sampleQuery": null,
+				"preAction": null,
+				"postAction": null,
+				"action": "append",
+				"tableSchema": [
+					{
+						"value": "id",
+						"label": "id",
+						"description": "VARCHAR"
+					},
+					{
+						"value": "title",
+						"label": "title",
+						"description": "VARCHAR"
+					},
+					{
+						"value": "source",
+						"label": "source",
+						"description": "VARCHAR"
+					},
+					{
+						"value": "price",
+						"label": "price",
+						"description": "DOUBLE PRECISION"
+					},
+					{
+						"value": "currency",
+						"label": "currency",
+						"description": "VARCHAR"
+					},
+					{
+						"value": "listing_created_on",
+						"label": "listing_created_on",
+						"description": "DATE"
+					},
+					{
+						"value": "is_active",
+						"label": "is_active",
+						"description": "BOOLEAN"
+					},
+					{
+						"value": "last_modified_timestamp",
+						"label": "last_modified_timestamp",
+						"description": "DATE"
+					},
+					{
+						"value": "week_year",
+						"label": "week_year",
+						"description": "VARCHAR"
+					},
+					{
+						"value": "month_year",
+						"label": "month_year",
+						"description": "VARCHAR"
+					}
+				],
+				"selectedColumns": [],
+				"crawlerConnection": null,
+				"tablePrefix": null,
+				"upsert": false,
+				"mergeAction": "simple",
+				"mergeWhenMatched": "update",
+				"mergeWhenNotMatched": "insert",
+				"mergeClause": null,
+				"stagingTable": "curated_rental_marketplace.apartments_temp_tsgk30",
+				"advancedOptions": []
+			},
+			"calculatedType": "",
+			"codeGenVersion": 2
+		},
+		"node-1750405465640": {
+			"nodeId": "node-1750405465640",
+			"dataPreview": false,
+			"previewAmount": 0,
+			"inputs": [
+				"node-1750405417465"
+			],
+			"name": "Amazon Redshift-bookings",
+			"generatedNodeName": "AmazonRedshiftbookings_node1750405465640",
+			"classification": "DataSink",
+			"type": "AmazonRedshift",
+			"streamingBatchInterval": 100,
+			"data": {
+				"accessType": "connection",
+				"sourceType": "table",
+				"connection": {
+					"value": "Redshift connection",
+					"label": "Redshift connection",
+					"description": "No description available. Version: 2"
+				},
+				"schema": {
+					"value": "curated_rental_marketplace",
+					"label": "curated_rental_marketplace",
+					"description": null
+				},
+				"catalogDatabase": null,
+				"catalogRedshiftTable": null,
+				"catalogRedshiftSchema": null,
+				"table": {
+					"value": "bookings",
+					"label": "bookings",
+					"description": null
+				},
+				"catalogTable": null,
+				"tempDir": "s3://aws-glue-assets-476114131873-eu-north-1/temporary/",
+				"iamRole": null,
+				"sampleQuery": null,
+				"preAction": null,
+				"postAction": null,
+				"action": "append",
+				"tableSchema": [
+					{
+						"value": "booking_id",
+						"label": "booking_id",
+						"description": "VARCHAR"
+					},
+					{
+						"value": "user_id",
+						"label": "user_id",
+						"description": "VARCHAR"
+					},
+					{
+						"value": "apartment_id",
+						"label": "apartment_id",
+						"description": "VARCHAR"
+					},
+					{
+						"value": "booking_date",
+						"label": "booking_date",
+						"description": "DATE"
+					},
+					{
+						"value": "checkin_date",
+						"label": "checkin_date",
+						"description": "DATE"
+					},
+					{
+						"value": "checkout_date",
+						"label": "checkout_date",
+						"description": "DATE"
+					},
+					{
+						"value": "total_price",
+						"label": "total_price",
+						"description": "DOUBLE PRECISION"
+					},
+					{
+						"value": "currency",
+						"label": "currency",
+						"description": "VARCHAR"
+					},
+					{
+						"value": "booking_status",
+						"label": "booking_status",
+						"description": "VARCHAR"
+					},
+					{
+						"value": "booking_duration_days",
+						"label": "booking_duration_days",
+						"description": "INTEGER"
+					},
+					{
+						"value": "confirmed_revenue",
+						"label": "confirmed_revenue",
+						"description": "DOUBLE PRECISION"
+					},
+					{
+						"value": "week_year",
+						"label": "week_year",
+						"description": "VARCHAR"
+					},
+					{
+						"value": "month_year",
+						"label": "month_year",
+						"description": "VARCHAR"
+					}
+				],
+				"selectedColumns": [],
+				"crawlerConnection": null,
+				"tablePrefix": null,
+				"upsert": false,
+				"mergeAction": "simple",
+				"mergeWhenMatched": "update",
+				"mergeWhenNotMatched": "insert",
+				"mergeClause": null,
+				"stagingTable": "curated_rental_marketplace.bookings_temp_gptvso",
+				"advancedOptions": []
+			},
+			"calculatedType": "",
+			"codeGenVersion": 2
+		},
+		"node-1750405585909": {
+			"nodeId": "node-1750405585909",
+			"dataPreview": false,
+			"previewAmount": 0,
+			"inputs": [
+				"node-1750402368013"
+			],
+			"name": "Select From Collection-apartments",
+			"generatedNodeName": "SelectFromCollectionapartments_node1750405585909",
+			"classification": "Transform",
+			"type": "SelectFromCollection",
+			"index": 0,
+			"parentsValid": true,
+			"calculatedType": "",
+			"codeGenVersion": 2
+		}
+	},
+	"hasBeenSaved": false,
+	"usageProfileName": null
+}
