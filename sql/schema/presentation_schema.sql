@@ -20,8 +20,8 @@ CREATE TABLE IF NOT EXISTS presentation_rental_marketplace.dim_date (
     month_name VARCHAR(10),
     quarter INTEGER,
     year INTEGER,
-    week_year VARCHAR(7),     -- For weekly KPI calculations (e.g., '2025-25')
-    month_year VARCHAR(7)     -- For monthly KPI calculations (e.g., '2025-06')
+    week_year VARCHAR(7),     -- For weekly KPI calculations
+    month_year VARCHAR(7)     -- For monthly KPI calculations
 );
 
 
