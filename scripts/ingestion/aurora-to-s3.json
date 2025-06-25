@@ -1,0 +1,610 @@
+{
+	"jobConfig": {
+		"name": "aurora-to-s3",
+		"description": "",
+		"role": "arn:aws:iam::476114131873:role/p2-full-glue-role",
+		"command": "glueetl",
+		"version": "5.0",
+		"runtime": null,
+		"workerType": "G.1X",
+		"numberOfWorkers": 10,
+		"maxCapacity": 10,
+		"jobRunQueuingEnabled": false,
+		"maxRetries": 0,
+		"timeout": 480,
+		"maxConcurrentRuns": 1,
+		"security": "none",
+		"scriptName": "aurora-to-s3.py",
+		"scriptLocation": "s3://aws-glue-assets-476114131873-eu-north-1/scripts/",
+		"language": "python-3",
+		"spark": true,
+		"sparkConfiguration": "standard",
+		"jobParameters": [],
+		"tags": [],
+		"jobMode": "VISUAL_MODE",
+		"createdOn": "2025-06-17T19:03:16.715Z",
+		"developerMode": false,
+		"connectionsList": [
+			"Aurora connection"
+		],
+		"temporaryDirectory": "s3://aws-glue-assets-476114131873-eu-north-1/temporary/",
+		"logging": true,
+		"glueHiveMetastore": true,
+		"etlAutoTuning": true,
+		"metrics": true,
+		"observabilityMetrics": true,
+		"bookmark": "job-bookmark-disable",
+		"sparkPath": "s3://aws-glue-assets-476114131873-eu-north-1/sparkHistoryLogs/",
+		"maintenanceWindow": null,
+		"pythonPath": "",
+		"dependentPath": "",
+		"additionalPythonModules": ""
+	},
+	"dag": {
+		"node-1750186520747": {
+			"nodeId": "node-1750186520747",
+			"dataPreview": false,
+			"previewAmount": 0,
+			"inputs": [],
+			"name": "RelationalDB.booking",
+			"generatedNodeName": "RelationalDBbooking_node1750186520747",
+			"classification": "DataSource",
+			"type": "MySQL",
+			"isCatalog": false,
+			"database": "aws_rental_marketplace",
+			"table": "bookings",
+			"connectionName": "Aurora connection",
+			"connectionType": "mysql",
+			"redshiftTmpDir": "",
+			"outputSchemas": [
+				[
+					{
+						"key": "booking_id",
+						"fullPath": [
+							"booking_id"
+						],
+						"type": "int",
+						"glueStudioType": null,
+						"children": null
+					},
+					{
+						"key": "user_id",
+						"fullPath": [
+							"user_id"
+						],
+						"type": "int",
+						"glueStudioType": null,
+						"children": null
+					},
+					{
+						"key": "apartment_id",
+						"fullPath": [
+							"apartment_id"
+						],
+						"type": "int",
+						"glueStudioType": null,
+						"children": null
+					},
+					{
+						"key": "booking_date",
+						"fullPath": [
+							"booking_date"
+						],
+						"type": "string",
+						"glueStudioType": null,
+						"children": null
+					},
+					{
+						"key": "checkin_date",
+						"fullPath": [
+							"checkin_date"
+						],
+						"type": "string",
+						"glueStudioType": null,
+						"children": null
+					},
+					{
+						"key": "checkout_date",
+						"fullPath": [
+							"checkout_date"
+						],
+						"type": "string",
+						"glueStudioType": null,
+						"children": null
+					},
+					{
+						"key": "total_price",
+						"fullPath": [
+							"total_price"
+						],
+						"type": "decimal",
+						"glueStudioType": null,
+						"children": null
+					},
+					{
+						"key": "currency",
+						"fullPath": [
+							"currency"
+						],
+						"type": "string",
+						"glueStudioType": null,
+						"children": null
+					},
+					{
+						"key": "booking_status",
+						"fullPath": [
+							"booking_status"
+						],
+						"type": "string",
+						"glueStudioType": null,
+						"children": null
+					}
+				]
+			],
+			"calculatedType": "",
+			"codeGenVersion": 2
+		},
+		"node-1750187598392": {
+			"nodeId": "node-1750187598392",
+			"dataPreview": false,
+			"previewAmount": 0,
+			"inputs": [],
+			"name": "RelationalDB.apartment_attributes",
+			"generatedNodeName": "RelationalDBapartment_attributes_node1750187598392",
+			"classification": "DataSource",
+			"type": "MySQL",
+			"isCatalog": false,
+			"database": "aws_rental_marketplace",
+			"table": "apartment_attributes",
+			"connectionName": "Aurora connection",
+			"connectionType": "mysql",
+			"redshiftTmpDir": "",
+			"outputSchemas": [
+				[
+					{
+						"key": "id",
+						"fullPath": [
+							"id"
+						],
+						"type": "int",
+						"glueStudioType": null,
+						"children": null
+					},
+					{
+						"key": "category",
+						"fullPath": [
+							"category"
+						],
+						"type": "string",
+						"glueStudioType": null,
+						"children": null
+					},
+					{
+						"key": "body",
+						"fullPath": [
+							"body"
+						],
+						"type": "string",
+						"glueStudioType": null,
+						"children": null
+					},
+					{
+						"key": "amenities",
+						"fullPath": [
+							"amenities"
+						],
+						"type": "string",
+						"glueStudioType": null,
+						"children": null
+					},
+					{
+						"key": "bathrooms",
+						"fullPath": [
+							"bathrooms"
+						],
+						"type": "int",
+						"glueStudioType": null,
+						"children": null
+					},
+					{
+						"key": "bedrooms",
+						"fullPath": [
+							"bedrooms"
+						],
+						"type": "int",
+						"glueStudioType": null,
+						"children": null
+					},
+					{
+						"key": "fee",
+						"fullPath": [
+							"fee"
+						],
+						"type": "decimal",
+						"glueStudioType": null,
+						"children": null
+					},
+					{
+						"key": "has_photo",
+						"fullPath": [
+							"has_photo"
+						],
+						"type": "string",
+						"glueStudioType": null,
+						"children": null
+					},
+					{
+						"key": "pets_allowed",
+						"fullPath": [
+							"pets_allowed"
+						],
+						"type": "string",
+						"glueStudioType": null,
+						"children": null
+					},
+					{
+						"key": "price_display",
+						"fullPath": [
+							"price_display"
+						],
+						"type": "string",
+						"glueStudioType": null,
+						"children": null
+					},
+					{
+						"key": "price_type",
+						"fullPath": [
+							"price_type"
+						],
+						"type": "string",
+						"glueStudioType": null,
+						"children": null
+					},
+					{
+						"key": "square_feet",
+						"fullPath": [
+							"square_feet"
+						],
+						"type": "int",
+						"glueStudioType": null,
+						"children": null
+					},
+					{
+						"key": "address",
+						"fullPath": [
+							"address"
+						],
+						"type": "string",
+						"glueStudioType": null,
+						"children": null
+					},
+					{
+						"key": "cityname",
+						"fullPath": [
+							"cityname"
+						],
+						"type": "string",
+						"glueStudioType": null,
+						"children": null
+					},
+					{
+						"key": "state",
+						"fullPath": [
+							"state"
+						],
+						"type": "string",
+						"glueStudioType": null,
+						"children": null
+					},
+					{
+						"key": "latitude",
+						"fullPath": [
+							"latitude"
+						],
+						"type": "decimal",
+						"glueStudioType": null,
+						"children": null
+					},
+					{
+						"key": "longitude",
+						"fullPath": [
+							"longitude"
+						],
+						"type": "decimal",
+						"glueStudioType": null,
+						"children": null
+					}
+				]
+			],
+			"calculatedType": "",
+			"codeGenVersion": 2
+		},
+		"node-1750187361700": {
+			"nodeId": "node-1750187361700",
+			"dataPreview": false,
+			"previewAmount": 0,
+			"inputs": [],
+			"name": "RelationalDB.apartments",
+			"generatedNodeName": "RelationalDBapartments_node1750187361700",
+			"classification": "DataSource",
+			"type": "MySQL",
+			"isCatalog": false,
+			"database": "aws_rental_marketplace",
+			"table": "apartments",
+			"connectionName": "Aurora connection",
+			"connectionType": "mysql",
+			"redshiftTmpDir": "",
+			"outputSchemas": [
+				[
+					{
+						"key": "id",
+						"fullPath": [
+							"id"
+						],
+						"type": "int",
+						"glueStudioType": null,
+						"children": null
+					},
+					{
+						"key": "title",
+						"fullPath": [
+							"title"
+						],
+						"type": "string",
+						"glueStudioType": null,
+						"children": null
+					},
+					{
+						"key": "source",
+						"fullPath": [
+							"source"
+						],
+						"type": "string",
+						"glueStudioType": null,
+						"children": null
+					},
+					{
+						"key": "price",
+						"fullPath": [
+							"price"
+						],
+						"type": "decimal",
+						"glueStudioType": null,
+						"children": null
+					},
+					{
+						"key": "currency",
+						"fullPath": [
+							"currency"
+						],
+						"type": "string",
+						"glueStudioType": null,
+						"children": null
+					},
+					{
+						"key": "listing_created_on",
+						"fullPath": [
+							"listing_created_on"
+						],
+						"type": "string",
+						"glueStudioType": null,
+						"children": null
+					},
+					{
+						"key": "is_active",
+						"fullPath": [
+							"is_active"
+						],
+						"type": "string",
+						"glueStudioType": null,
+						"children": null
+					},
+					{
+						"key": "last_modified_timestamp",
+						"fullPath": [
+							"last_modified_timestamp"
+						],
+						"type": "string",
+						"glueStudioType": null,
+						"children": null
+					}
+				]
+			],
+			"calculatedType": "",
+			"codeGenVersion": 2
+		},
+		"node-1750186729919": {
+			"nodeId": "node-1750186729919",
+			"dataPreview": false,
+			"previewAmount": 0,
+			"inputs": [
+				"node-1750186520747"
+			],
+			"name": "Amazon S3-bookings",
+			"generatedNodeName": "AmazonS3bookings_node1750186729919",
+			"classification": "DataSink",
+			"type": "S3",
+			"streamingBatchInterval": 100,
+			"format": "glueparquet",
+			"compression": "snappy",
+			"numberTargetPartitions": "1",
+			"path": "s3://p2-lab2-landing-zone/bookings/",
+			"partitionKeys": [],
+			"schemaChangePolicy": {
+				"enableUpdateCatalog": false,
+				"updateBehavior": null,
+				"database": null,
+				"table": null
+			},
+			"updateCatalogOptions": "none",
+			"autoDataQuality": {
+				"isEnabled": true,
+				"evaluationContext": "EvaluateDataQuality_node1750184732569"
+			},
+			"calculatedType": "",
+			"codeGenVersion": 2
+		},
+		"node-1750187518327": {
+			"nodeId": "node-1750187518327",
+			"dataPreview": false,
+			"previewAmount": 0,
+			"inputs": [
+				"node-1750187361700"
+			],
+			"name": "Amazon S3-apartments",
+			"generatedNodeName": "AmazonS3apartments_node1750187518327",
+			"classification": "DataSink",
+			"type": "S3",
+			"streamingBatchInterval": 100,
+			"format": "glueparquet",
+			"compression": "snappy",
+			"numberTargetPartitions": "1",
+			"path": "s3://p2-lab2-landing-zone/apartments/",
+			"partitionKeys": [],
+			"schemaChangePolicy": {
+				"enableUpdateCatalog": false,
+				"updateBehavior": null,
+				"database": null,
+				"table": null
+			},
+			"updateCatalogOptions": "none",
+			"autoDataQuality": {
+				"isEnabled": true,
+				"evaluationContext": "EvaluateDataQuality_node1750184732569"
+			},
+			"calculatedType": "",
+			"codeGenVersion": 2
+		},
+		"node-1750187617507": {
+			"nodeId": "node-1750187617507",
+			"dataPreview": false,
+			"previewAmount": 0,
+			"inputs": [
+				"node-1750187598392"
+			],
+			"name": "Amazon S3",
+			"generatedNodeName": "AmazonS3_node1750187617507",
+			"classification": "DataSink",
+			"type": "S3",
+			"streamingBatchInterval": 100,
+			"format": "glueparquet",
+			"compression": "snappy",
+			"numberTargetPartitions": "1",
+			"path": "s3://p2-lab2-landing-zone/apartment_attributes/",
+			"partitionKeys": [],
+			"schemaChangePolicy": {
+				"enableUpdateCatalog": false,
+				"updateBehavior": null,
+				"database": null,
+				"table": null
+			},
+			"updateCatalogOptions": "none",
+			"autoDataQuality": {
+				"isEnabled": true,
+				"evaluationContext": "EvaluateDataQuality_node1750184732569"
+			},
+			"calculatedType": "",
+			"codeGenVersion": 2
+		},
+		"node-1750187590497": {
+			"nodeId": "node-1750187590497",
+			"dataPreview": false,
+			"previewAmount": 0,
+			"inputs": [],
+			"name": "RelationalDB.user_viewing",
+			"generatedNodeName": "RelationalDBuser_viewing_node1750187590497",
+			"classification": "DataSource",
+			"type": "MySQL",
+			"isCatalog": false,
+			"database": "aws_rental_marketplace",
+			"table": "user_viewing",
+			"connectionName": "Aurora connection",
+			"connectionType": "mysql",
+			"redshiftTmpDir": "",
+			"outputSchemas": [
+				[
+					{
+						"key": "user_id",
+						"fullPath": [
+							"user_id"
+						],
+						"type": "int",
+						"glueStudioType": null,
+						"children": null
+					},
+					{
+						"key": "apartment_id",
+						"fullPath": [
+							"apartment_id"
+						],
+						"type": "int",
+						"glueStudioType": null,
+						"children": null
+					},
+					{
+						"key": "viewed_at",
+						"fullPath": [
+							"viewed_at"
+						],
+						"type": "string",
+						"glueStudioType": null,
+						"children": null
+					},
+					{
+						"key": "is_wishlisted",
+						"fullPath": [
+							"is_wishlisted"
+						],
+						"type": "string",
+						"glueStudioType": null,
+						"children": null
+					},
+					{
+						"key": "call_to_action",
+						"fullPath": [
+							"call_to_action"
+						],
+						"type": "string",
+						"glueStudioType": null,
+						"children": null
+					}
+				]
+			],
+			"calculatedType": "",
+			"codeGenVersion": 2
+		},
+		"node-1750187611379": {
+			"nodeId": "node-1750187611379",
+			"dataPreview": false,
+			"previewAmount": 0,
+			"inputs": [
+				"node-1750187590497"
+			],
+			"name": "Amazon S3-user_viewing",
+			"generatedNodeName": "AmazonS3user_viewing_node1750187611379",
+			"classification": "DataSink",
+			"type": "S3",
+			"streamingBatchInterval": 100,
+			"format": "glueparquet",
+			"compression": "snappy",
+			"numberTargetPartitions": "1",
+			"path": "s3://p2-lab2-landing-zone/user_viewing/",
+			"partitionKeys": [],
+			"schemaChangePolicy": {
+				"enableUpdateCatalog": false,
+				"updateBehavior": null,
+				"database": null,
+				"table": null
+			},
+			"updateCatalogOptions": "none",
+			"autoDataQuality": {
+				"isEnabled": true,
+				"evaluationContext": "EvaluateDataQuality_node1750184732569"
+			},
+			"calculatedType": "",
+			"codeGenVersion": 2
+		}
+	},
+	"hasBeenSaved": false,
+	"usageProfileName": null
+}
