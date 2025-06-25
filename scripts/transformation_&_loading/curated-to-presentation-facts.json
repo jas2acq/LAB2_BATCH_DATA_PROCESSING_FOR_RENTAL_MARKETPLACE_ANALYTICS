@@ -1,0 +1,253 @@
+{
+	"jobConfig": {
+		"name": "curated-to-presentation-facts",
+		"description": "",
+		"role": "arn:aws:iam::476114131873:role/p2-full-glue-role",
+		"command": "glueetl",
+		"version": "5.0",
+		"runtime": null,
+		"workerType": "G.1X",
+		"numberOfWorkers": 10,
+		"maxCapacity": 10,
+		"jobRunQueuingEnabled": false,
+		"maxRetries": 0,
+		"timeout": 480,
+		"maxConcurrentRuns": 1,
+		"security": "none",
+		"scriptName": "curated-to-presentation-facts.py",
+		"scriptLocation": "s3://aws-glue-assets-476114131873-eu-north-1/scripts/",
+		"language": "python-3",
+		"spark": true,
+		"sparkConfiguration": "standard",
+		"jobParameters": [],
+		"tags": [],
+		"jobMode": "VISUAL_MODE",
+		"createdOn": "2025-06-22T15:38:54.334Z",
+		"developerMode": false,
+		"connectionsList": [
+			"Redshift connection"
+		],
+		"temporaryDirectory": "s3://aws-glue-assets-476114131873-eu-north-1/temporary/",
+		"logging": true,
+		"glueHiveMetastore": true,
+		"etlAutoTuning": true,
+		"metrics": true,
+		"observabilityMetrics": true,
+		"bookmark": "job-bookmark-disable",
+		"sparkPath": "s3://aws-glue-assets-476114131873-eu-north-1/sparkHistoryLogs/",
+		"maintenanceWindow": null,
+		"pythonPath": "",
+		"dependentPath": "",
+		"additionalPythonModules": ""
+	},
+	"dag": {
+		"node-1750606517581": {
+			"nodeId": "node-1750606517581",
+			"dataPreview": false,
+			"previewAmount": 0,
+			"inputs": [
+				"node-1750606513689"
+			],
+			"name": "Amazon Redshift",
+			"generatedNodeName": "AmazonRedshift_node1750606517581",
+			"classification": "DataSink",
+			"type": "AmazonRedshift",
+			"streamingBatchInterval": 100,
+			"data": {
+				"accessType": "connection",
+				"sourceType": "table",
+				"connection": {
+					"value": "Redshift connection",
+					"label": "Redshift connection",
+					"description": "No description available. Version: 2"
+				},
+				"schema": {
+					"value": "presentation_rental_marketplace",
+					"label": "presentation_rental_marketplace",
+					"description": null
+				},
+				"catalogDatabase": null,
+				"catalogRedshiftTable": null,
+				"catalogRedshiftSchema": null,
+				"table": {
+					"value": "fact_bookings",
+					"label": "fact_bookings",
+					"description": null
+				},
+				"catalogTable": null,
+				"tempDir": "s3://aws-glue-assets-476114131873-eu-north-1/temporary/",
+				"iamRole": null,
+				"sampleQuery": null,
+				"preAction": null,
+				"postAction": null,
+				"action": "append",
+				"tableSchema": [],
+				"selectedColumns": [],
+				"crawlerConnection": null,
+				"tablePrefix": null,
+				"upsert": false,
+				"mergeAction": "simple",
+				"mergeWhenMatched": "update",
+				"mergeWhenNotMatched": "insert",
+				"mergeClause": null,
+				"stagingTable": "presentation_rental_marketplace.fact_bookings_temp_2ifpnj",
+				"advancedOptions": []
+			},
+			"calculatedType": "",
+			"codeGenVersion": 2
+		},
+		"node-1750606752220": {
+			"nodeId": "node-1750606752220",
+			"dataPreview": false,
+			"previewAmount": 0,
+			"inputs": [],
+			"name": "Amazon Redshift",
+			"generatedNodeName": "AmazonRedshift_node1750606752220",
+			"classification": "DataSource",
+			"type": "AmazonRedshift",
+			"isCatalog": false,
+			"data": {
+				"accessType": "connection",
+				"sourceType": "query",
+				"connection": {
+					"value": "Redshift connection",
+					"label": "Redshift connection",
+					"description": "No description available. Version: 2"
+				},
+				"schema": null,
+				"catalogDatabase": null,
+				"catalogRedshiftTable": null,
+				"catalogRedshiftSchema": null,
+				"table": null,
+				"catalogTable": null,
+				"tempDir": "s3://aws-glue-assets-476114131873-eu-north-1/temporary/",
+				"iamRole": null,
+				"sampleQuery": "SELECT \r\n    uv.user_id,\r\n    uv.apartment_id,\r\n    dd.date_key AS viewing_date_key,\r\n    da.apartment_key,\r\n    du.user_key,\r\n    uv.is_wishlisted,\r\n    uv.call_to_action,\r\n    uv.week_year,\r\n    uv.month_year\r\nFROM curated_rental_marketplace.user_viewing uv\r\nINNER JOIN presentation_rental_marketplace.dim_apartment da \r\n    ON uv.apartment_id = da.apartment_id\r\nINNER JOIN presentation_rental_marketplace.dim_user du \r\n    ON uv.user_id = du.user_id\r\nINNER JOIN presentation_rental_marketplace.dim_date dd \r\n    ON dd.date_key = (EXTRACT(YEAR FROM uv.viewed_at) * 10000 + \r\n                      EXTRACT(MONTH FROM uv.viewed_at) * 100 + \r\n                      EXTRACT(DAY FROM uv.viewed_at))\r\nWHERE uv.user_id IS NOT NULL\r\n  AND uv.apartment_id IS NOT NULL\r\n  AND uv.viewed_at IS NOT NULL;",
+				"preAction": null,
+				"postAction": null,
+				"action": "append",
+				"tableSchema": [],
+				"selectedColumns": [],
+				"crawlerConnection": null,
+				"tablePrefix": null,
+				"upsert": false,
+				"mergeAction": "simple",
+				"mergeWhenMatched": "update",
+				"mergeWhenNotMatched": "insert",
+				"mergeClause": null,
+				"stagingTable": null,
+				"advancedOptions": []
+			},
+			"calculatedType": "",
+			"codeGenVersion": 2,
+			"outputSchemas": [
+				[]
+			]
+		},
+		"node-1750606757139": {
+			"nodeId": "node-1750606757139",
+			"dataPreview": false,
+			"previewAmount": 0,
+			"inputs": [
+				"node-1750606752220"
+			],
+			"name": "Amazon Redshift",
+			"generatedNodeName": "AmazonRedshift_node1750606757139",
+			"classification": "DataSink",
+			"type": "AmazonRedshift",
+			"streamingBatchInterval": 100,
+			"data": {
+				"accessType": "connection",
+				"sourceType": "table",
+				"connection": {
+					"value": "Redshift connection",
+					"label": "Redshift connection",
+					"description": "No description available. Version: 2"
+				},
+				"schema": {
+					"value": "presentation_rental_marketplace",
+					"label": "presentation_rental_marketplace",
+					"description": null
+				},
+				"catalogDatabase": null,
+				"catalogRedshiftTable": null,
+				"catalogRedshiftSchema": null,
+				"table": {
+					"value": "fact_user_viewings",
+					"label": "fact_user_viewings",
+					"description": null
+				},
+				"catalogTable": null,
+				"tempDir": "s3://aws-glue-assets-476114131873-eu-north-1/temporary/",
+				"iamRole": null,
+				"sampleQuery": null,
+				"preAction": null,
+				"postAction": null,
+				"action": "append",
+				"tableSchema": [],
+				"selectedColumns": [],
+				"crawlerConnection": null,
+				"tablePrefix": null,
+				"upsert": false,
+				"mergeAction": "simple",
+				"mergeWhenMatched": "update",
+				"mergeWhenNotMatched": "insert",
+				"mergeClause": null,
+				"stagingTable": "presentation_rental_marketplace.fact_user_viewings_temp_d4o1vp",
+				"advancedOptions": []
+			},
+			"calculatedType": "",
+			"codeGenVersion": 2
+		},
+		"node-1750606513689": {
+			"nodeId": "node-1750606513689",
+			"dataPreview": false,
+			"previewAmount": 0,
+			"inputs": [],
+			"name": "Amazon Redshift",
+			"generatedNodeName": "AmazonRedshift_node1750606513689",
+			"classification": "DataSource",
+			"type": "AmazonRedshift",
+			"isCatalog": false,
+			"data": {
+				"accessType": "connection",
+				"sourceType": "query",
+				"connection": {
+					"value": "Redshift connection",
+					"label": "Redshift connection",
+					"description": "No description available. Version: 2"
+				},
+				"schema": null,
+				"catalogDatabase": null,
+				"catalogRedshiftTable": null,
+				"catalogRedshiftSchema": null,
+				"table": null,
+				"catalogTable": null,
+				"tempDir": "s3://aws-glue-assets-476114131873-eu-north-1/temporary/",
+				"iamRole": null,
+				"sampleQuery": "SELECT \r\n    b.booking_id,\r\n    da.apartment_key,\r\n    du.user_key,\r\n    dd_booking.date_key AS booking_date_key,\r\n    dd_checkin.date_key AS checkin_date_key,\r\n    dd_checkout.date_key AS checkout_date_key,\r\n    dbs.booking_status_key,\r\n    b.total_price,\r\n    b.currency,\r\n    b.booking_duration_days,\r\n    b.confirmed_revenue,\r\n    b.week_year,\r\n    b.month_year\r\nFROM curated_rental_marketplace.bookings b\r\nINNER JOIN presentation_rental_marketplace.dim_apartment da \r\n    ON b.apartment_id = da.apartment_id\r\nINNER JOIN presentation_rental_marketplace.dim_user du \r\n    ON b.user_id = du.user_id\r\nINNER JOIN presentation_rental_marketplace.dim_date dd_booking \r\n    ON dd_booking.date_key = (EXTRACT(YEAR FROM b.booking_date) * 10000 + \r\n                              EXTRACT(MONTH FROM b.booking_date) * 100 + \r\n                              EXTRACT(DAY FROM b.booking_date))\r\nLEFT JOIN presentation_rental_marketplace.dim_date dd_checkin \r\n    ON dd_checkin.date_key = (EXTRACT(YEAR FROM b.checkin_date) * 10000 + \r\n                              EXTRACT(MONTH FROM b.checkin_date) * 100 + \r\n                              EXTRACT(DAY FROM b.checkin_date))\r\nLEFT JOIN presentation_rental_marketplace.dim_date dd_checkout \r\n    ON dd_checkout.date_key = (EXTRACT(YEAR FROM b.checkout_date) * 10000 + \r\n                               EXTRACT(MONTH FROM b.checkout_date) * 100 + \r\n                               EXTRACT(DAY FROM b.checkout_date))\r\nLEFT JOIN presentation_rental_marketplace.dim_booking_status dbs \r\n    ON b.booking_status = dbs.booking_status_name\r\nWHERE b.booking_id IS NOT NULL\r\n  AND b.apartment_id IS NOT NULL\r\n  AND b.user_id IS NOT NULL\r\n  AND b.booking_date IS NOT NULL;",
+				"preAction": null,
+				"postAction": null,
+				"action": "append",
+				"tableSchema": [],
+				"selectedColumns": [],
+				"crawlerConnection": null,
+				"tablePrefix": null,
+				"upsert": false,
+				"mergeAction": "simple",
+				"mergeWhenMatched": "update",
+				"mergeWhenNotMatched": "insert",
+				"mergeClause": null,
+				"stagingTable": null,
+				"advancedOptions": []
+			},
+			"calculatedType": "",
+			"codeGenVersion": 2,
+			"outputSchemas": [
+				[]
+			]
+		}
+	},
+	"hasBeenSaved": false,
+	"usageProfileName": null
+}
